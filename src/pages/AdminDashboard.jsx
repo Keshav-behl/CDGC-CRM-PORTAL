@@ -253,7 +253,7 @@ function CrmView() {
   }, [])
 
   return (
-    <div style={{ marginTop: -28 }}>
+    <div>
       <StatsBar entries={entries} />
       <CompanyTable entries={entries} loading={loading} onEdit={null} onDelete={null} />
     </div>
@@ -398,18 +398,20 @@ export default function AdminDashboard() {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, padding: tab === 'companies' ? '0' : '28px 24px', maxWidth: tab === 'companies' ? '100%' : 1100, width: '100%', margin: '0 auto' }}>
+      <div style={{ flex: 1, width: '100%' }}>
+        {tab === 'companies' && <CrmView />}
         {tab !== 'companies' && (
-          <div style={{
-            fontFamily: 'var(--fm)', fontSize: 10, textTransform: 'uppercase',
-            letterSpacing: '0.7px', color: 'var(--ink3)', marginBottom: 20,
-          }}>
-            {subtitles[tab]}
+          <div style={{ padding: '28px 24px', maxWidth: 1100, margin: '0 auto' }}>
+            <div style={{
+              fontFamily: 'var(--fm)', fontSize: 10, textTransform: 'uppercase',
+              letterSpacing: '0.7px', color: 'var(--ink3)', marginBottom: 20,
+            }}>
+              {subtitles[tab]}
+            </div>
+            {tab === 'audit' && <AuditLog />}
+            {tab === 'users' && <UserManager />}
           </div>
         )}
-        {tab === 'companies' && <CrmView />}
-        {tab === 'audit'     && <AuditLog />}
-        {tab === 'users'     && <UserManager />}
       </div>
     </div>
   )
