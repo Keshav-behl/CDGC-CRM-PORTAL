@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { db } from './firebase'
+import { db, addAuditLog } from './firebase'
 import {
   collection, onSnapshot, addDoc, updateDoc, deleteDoc,
-  doc, serverTimestamp, query, orderBy
+  doc, serverTimestamp, query, orderBy, getDoc,
 } from 'firebase/firestore'
+import { useAuth } from './context/AuthContext'
+import Login from './pages/Login'
+import AdminDashboard from './pages/AdminDashboard'
 import TopBar from './components/TopBar'
 import StatsBar from './components/StatsBar'
 import Toolbar from './components/Toolbar'
@@ -11,6 +14,7 @@ import CompanyTable from './components/CompanyTable'
 import CompanyModal from './components/CompanyModal'
 
 export default function App() {
+  const { user, logout } = useAuth()
   const [entries, setEntries] = useState([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
@@ -18,6 +22,9 @@ export default function App() {
   const [search, setSearch] = useState('')
   const [filterConv, setFilterConv] = useState('')
   const [filterPerson, setFilterPerson] = useState('')
+
+  if (!user) return <Login />
+  if (user.role === 'admin') return <AdminDashboard />
 
   // Real-time Firestore listener
   useEffect(() => {
@@ -37,12 +44,29 @@ export default function App() {
       await updateDoc(doc(db, 'companies', editEntry.id), {
         ...data,
         updatedAt: serverTimestamp(),
+        lastEditedBy: user.username,
+      })
+      addAuditLog({
+        action: 'EDIT',
+        user: user.username,
+        companyId: editEntry.id,
+        companyName: data.company,
+        details: `Role: ${data.role || '—'} | Outcome: ${data.conversion}`,
       })
     } else {
-      await addDoc(collection(db, 'companies'), {
+      const ref = await addDoc(collection(db, 'companies'), {
         ...data,
         updatedAt: serverTimestamp(),
         createdAt: serverTimestamp(),
+        createdBy: user.username,
+        lastEditedBy: user.username,
+      })
+      addAuditLog({
+        action: 'ADD',
+        user: user.username,
+        companyId: ref.id,
+        companyName: data.company,
+        details: `Role: ${data.role || '—'} | Outcome: ${data.conversion}`,
       })
     }
     setModalOpen(false)
@@ -51,14 +75,22 @@ export default function App() {
 
   async function handleDelete(id) {
     if (!window.confirm('Delete this entry?')) return
+    const snap = await getDoc(doc(db, 'companies', id))
+    const companyName = snap.exists() ? snap.data().company : '—'
     await deleteDoc(doc(db, 'companies', id))
+    addAuditLog({
+      action: 'DELETE',
+      user: user.username,
+      companyId: id,
+      companyName,
+      details: null,
+    })
   }
 
   function openAdd() { setEditEntry(null); setModalOpen(true) }
   function openEdit(entry) { setEditEntry(entry); setModalOpen(true) }
   function closeModal() { setModalOpen(false); setEditEntry(null) }
 
-  // Filtering
   const filtered = entries.filter(e => {
     if (filterConv && e.conversion !== filterConv) return false
     if (filterPerson && e.person !== filterPerson) return false
@@ -73,7 +105,7 @@ export default function App() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <TopBar count={entries.length} />
+      <TopBar count={entries.length} user={user} onLogout={logout} />
       <StatsBar entries={entries} />
       <Toolbar
         search={search} setSearch={setSearch}
@@ -91,6 +123,7 @@ export default function App() {
       {modalOpen && (
         <CompanyModal
           entry={editEntry}
+          currentUser={user}
           onSave={handleSave}
           onClose={closeModal}
         />

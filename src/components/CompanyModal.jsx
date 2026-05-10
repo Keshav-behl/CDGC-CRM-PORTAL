@@ -56,7 +56,7 @@ function ContactRow({ contact, index, onChange, onRemove, suggestedStage }) {
   )
 }
 
-export default function CompanyModal({ entry, onSave, onClose }) {
+export default function CompanyModal({ entry, currentUser, onSave, onClose }) {
   const [person, setPerson] = useState('')
   const [company, setCompany] = useState('')
   const [role, setRole] = useState('')
@@ -72,8 +72,10 @@ export default function CompanyModal({ entry, onSave, onClose }) {
       setConversion(entry.conversion || 'Not Approached')
       setNotes(entry.notes || '')
       setContacts(entry.contacts ? JSON.parse(JSON.stringify(entry.contacts)) : [])
+    } else if (currentUser) {
+      setPerson(currentUser.displayName || '')
     }
-  }, [entry])
+  }, [entry, currentUser])
 
   function addContact() {
     const nextStage = STAGE_LABELS[Math.min(contacts.length, STAGE_LABELS.length - 1)]

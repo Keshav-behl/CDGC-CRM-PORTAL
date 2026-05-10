@@ -28,16 +28,32 @@ const s = {
   },
 }
 
-export default function TopBar({ count }) {
+export default function TopBar({ count, user, onLogout }) {
   return (
     <div style={s.bar}>
       <div style={s.left}>
         <span style={s.title}>placement.crm</span>
         <span style={s.badge}>{count} compan{count === 1 ? 'y' : 'ies'}</span>
       </div>
-      <div style={s.live}>
-        <span style={s.dot} />
-        live · shared
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={s.live}>
+          <span style={s.dot} />
+          live · shared
+        </div>
+        {user && (
+          <>
+            <span style={{
+              fontFamily: 'var(--fm)', fontSize: 11, color: 'var(--ink2)',
+              background: 'var(--bg3)', border: '0.5px solid var(--bdr2)',
+              padding: '3px 10px', borderRadius: 20,
+            }}>{user.displayName}</span>
+            <button onClick={onLogout} style={{
+              fontFamily: 'var(--fm)', fontSize: 11, padding: '4px 12px',
+              border: '0.5px solid var(--bdr2)', borderRadius: 6,
+              background: 'none', color: 'var(--ink3)',
+            }}>Sign out</button>
+          </>
+        )}
       </div>
     </div>
   )

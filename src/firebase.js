@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getFirestore } from 'firebase/firestore'
+import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,3 +12,18 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)
+
+export async function addAuditLog({ action, user, companyId, companyName, details }) {
+  try {
+    await addDoc(collection(db, 'auditLogs'), {
+      action,
+      user,
+      companyId: companyId || null,
+      companyName: companyName || null,
+      details: details || null,
+      timestamp: serverTimestamp(),
+    })
+  } catch (err) {
+    console.error('Audit log failed:', err)
+  }
+}
