@@ -48,10 +48,9 @@ function ContactRow({ contact, index, onChange, onRemove }) {
         </select>
         <input type="date" value={contact.date} onChange={e => onChange(index, 'date', e.target.value)} />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         <input type="text" placeholder="POC / contact name" value={contact.poc} onChange={e => onChange(index, 'poc', e.target.value)} />
         <input type="tel" placeholder="Phone number" value={contact.phone || ''} onChange={e => onChange(index, 'phone', e.target.value)} />
-        <input type="text" placeholder="Note for this touchpoint" value={contact.note} onChange={e => onChange(index, 'note', e.target.value)} />
       </div>
     </div>
   )
@@ -84,7 +83,6 @@ export default function CompanyModal({ entry, currentUser, onSave, onClose }) {
       date: new Date().toISOString().slice(0, 10),
       poc: '',
       phone: '',
-      note: '',
     }])
   }
 

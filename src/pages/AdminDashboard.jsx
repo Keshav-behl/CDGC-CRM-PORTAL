@@ -5,6 +5,8 @@ import {
 } from 'firebase/firestore'
 import { useAuth } from '../context/AuthContext'
 import { hashPassword } from '../auth'
+import CompanyTable from '../components/CompanyTable'
+import StatsBar from '../components/StatsBar'
 
 const ACTION_COLORS = {
   ADD:    { bg: 'var(--green-bg)', bdr: 'var(--green-bdr)', ink: 'var(--green)' },
@@ -237,6 +239,27 @@ function UserManager() {
   )
 }
 
+function CrmView() {
+  const [entries, setEntries] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const q = query(collection(db, 'companies'), orderBy('updatedAt', 'desc'))
+    const unsub = onSnapshot(q, snap => {
+      setEntries(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+      setLoading(false)
+    })
+    return () => unsub()
+  }, [])
+
+  return (
+    <div style={{ marginTop: -28 }}>
+      <StatsBar entries={entries} />
+      <CompanyTable entries={entries} loading={loading} onEdit={null} onDelete={null} />
+    </div>
+  )
+}
+
 function AuditLog() {
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(true)
@@ -319,12 +342,19 @@ function AuditLog() {
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth()
-  const [tab, setTab] = useState('audit')
+  const [tab, setTab] = useState('companies')
 
   const tabs = [
-    { id: 'audit', label: 'Audit Log' },
-    { id: 'users', label: 'Users' },
+    { id: 'companies', label: 'Companies' },
+    { id: 'audit',     label: 'Audit Log' },
+    { id: 'users',     label: 'Users' },
   ]
+
+  const subtitles = {
+    companies: 'Live view of all CRM entries',
+    audit:     'All activity across the CRM',
+    users:     'Manage team members',
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
@@ -368,14 +398,18 @@ export default function AdminDashboard() {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, padding: '28px 24px', maxWidth: 1100, width: '100%', margin: '0 auto' }}>
-        <div style={{
-          fontFamily: 'var(--fm)', fontSize: 10, textTransform: 'uppercase',
-          letterSpacing: '0.7px', color: 'var(--ink3)', marginBottom: 20,
-        }}>
-          {tab === 'audit' ? 'All activity across the CRM' : 'Manage team members'}
-        </div>
-        {tab === 'audit' ? <AuditLog /> : <UserManager />}
+      <div style={{ flex: 1, padding: tab === 'companies' ? '0' : '28px 24px', maxWidth: tab === 'companies' ? '100%' : 1100, width: '100%', margin: '0 auto' }}>
+        {tab !== 'companies' && (
+          <div style={{
+            fontFamily: 'var(--fm)', fontSize: 10, textTransform: 'uppercase',
+            letterSpacing: '0.7px', color: 'var(--ink3)', marginBottom: 20,
+          }}>
+            {subtitles[tab]}
+          </div>
+        )}
+        {tab === 'companies' && <CrmView />}
+        {tab === 'audit'     && <AuditLog />}
+        {tab === 'users'     && <UserManager />}
       </div>
     </div>
   )

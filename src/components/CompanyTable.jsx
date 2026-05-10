@@ -178,12 +178,16 @@ export default function CompanyTable({ entries, loading, onEdit, onDelete }) {
                     {e.notes || '—'}
                   </td>
                   <td style={{ ...tdStyle, whiteSpace: 'nowrap' }} onClick={ev => ev.stopPropagation()}>
-                    <button onClick={() => onEdit(e)} style={{ background: 'none', border: '0.5px solid var(--bdr2)', color: 'var(--ink2)', padding: '4px 7px', borderRadius: 5, fontSize: 14, display: 'inline-flex', marginRight: 4 }}>
-                      <i className="ti ti-edit" />
-                    </button>
-                    <button onClick={() => onDelete(e.id)} style={{ background: 'none', border: 'none', color: 'var(--red)', padding: '4px 7px', borderRadius: 5, fontSize: 14, display: 'inline-flex' }}>
-                      <i className="ti ti-trash" />
-                    </button>
+                    {onEdit && (
+                      <button onClick={() => onEdit(e)} style={{ background: 'none', border: '0.5px solid var(--bdr2)', color: 'var(--ink2)', padding: '4px 7px', borderRadius: 5, fontSize: 14, display: 'inline-flex', marginRight: 4 }}>
+                        <i className="ti ti-edit" />
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button onClick={() => onDelete(e.id)} style={{ background: 'none', border: 'none', color: 'var(--red)', padding: '4px 7px', borderRadius: 5, fontSize: 14, display: 'inline-flex' }}>
+                        <i className="ti ti-trash" />
+                      </button>
+                    )}
                   </td>
                 </tr>
                 {isOpen && <DetailPanel contacts={contacts} />}
