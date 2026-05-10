@@ -28,7 +28,7 @@ function FormRow({ label, children }) {
   return <div style={rowStyle}><label style={labelStyle}>{label}</label>{children}</div>
 }
 
-function ContactRow({ contact, index, onChange, onRemove, suggestedStage }) {
+function ContactRow({ contact, index, onChange, onRemove }) {
   return (
     <div style={{ marginBottom: 12, background: 'var(--bg3)', border: '0.5px solid var(--bdr)', borderRadius: 8, padding: '10px 12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -48,8 +48,9 @@ function ContactRow({ contact, index, onChange, onRemove, suggestedStage }) {
         </select>
         <input type="date" value={contact.date} onChange={e => onChange(index, 'date', e.target.value)} />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
         <input type="text" placeholder="POC / contact name" value={contact.poc} onChange={e => onChange(index, 'poc', e.target.value)} />
+        <input type="tel" placeholder="Phone number" value={contact.phone || ''} onChange={e => onChange(index, 'phone', e.target.value)} />
         <input type="text" placeholder="Note for this touchpoint" value={contact.note} onChange={e => onChange(index, 'note', e.target.value)} />
       </div>
     </div>
@@ -57,25 +58,23 @@ function ContactRow({ contact, index, onChange, onRemove, suggestedStage }) {
 }
 
 export default function CompanyModal({ entry, currentUser, onSave, onClose }) {
-  const [person, setPerson] = useState('')
   const [company, setCompany] = useState('')
   const [role, setRole] = useState('')
   const [conversion, setConversion] = useState('Not Approached')
+  const [scheduledDate, setScheduledDate] = useState('')
   const [notes, setNotes] = useState('')
   const [contacts, setContacts] = useState([])
 
   useEffect(() => {
     if (entry) {
-      setPerson(entry.person || '')
       setCompany(entry.company || '')
       setRole(entry.role || '')
       setConversion(entry.conversion || 'Not Approached')
+      setScheduledDate(entry.scheduledDate || '')
       setNotes(entry.notes || '')
       setContacts(entry.contacts ? JSON.parse(JSON.stringify(entry.contacts)) : [])
-    } else if (currentUser) {
-      setPerson(currentUser.displayName || '')
     }
-  }, [entry, currentUser])
+  }, [entry])
 
   function addContact() {
     const nextStage = STAGE_LABELS[Math.min(contacts.length, STAGE_LABELS.length - 1)]
@@ -84,6 +83,7 @@ export default function CompanyModal({ entry, currentUser, onSave, onClose }) {
       channel: 'Email',
       date: new Date().toISOString().slice(0, 10),
       poc: '',
+      phone: '',
       note: '',
     }])
   }
@@ -97,11 +97,12 @@ export default function CompanyModal({ entry, currentUser, onSave, onClose }) {
   }
 
   function handleSave() {
-    if (!person.trim() || !company.trim()) {
-      alert('Person and company are required.')
+    if (!company.trim()) {
+      alert('Company is required.')
       return
     }
-    onSave({ person: person.trim(), company: company.trim(), role: role.trim(), conversion, notes: notes.trim(), contacts })
+    const person = currentUser?.displayName || ''
+    onSave({ person, company: company.trim(), role: role.trim(), conversion, scheduledDate, notes: notes.trim(), contacts })
   }
 
   return (
@@ -117,8 +118,15 @@ export default function CompanyModal({ entry, currentUser, onSave, onClose }) {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <FormRow label="Your name">
-            <input type="text" value={person} onChange={e => setPerson(e.target.value)} placeholder="e.g. Keshav" style={{ width: '100%' }} />
+          <FormRow label="Added by">
+            <div style={{
+              padding: '7px 10px', borderRadius: 6, fontSize: 13,
+              background: 'var(--bg4)', border: '0.5px solid var(--bdr)',
+              color: 'var(--ink2)', display: 'flex', alignItems: 'center', gap: 6,
+            }}>
+              <i className="ti ti-lock" style={{ fontSize: 12, color: 'var(--ink3)' }} />
+              {currentUser?.displayName || '—'}
+            </div>
           </FormRow>
           <FormRow label="Company">
             <input type="text" value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. Jane Street" style={{ width: '100%' }} />
@@ -137,6 +145,9 @@ export default function CompanyModal({ entry, currentUser, onSave, onClose }) {
             </select>
           </FormRow>
         </div>
+        <FormRow label="Scheduled approach date">
+          <input type="date" value={scheduledDate} onChange={e => setScheduledDate(e.target.value)} style={{ width: '100%' }} />
+        </FormRow>
         <FormRow label="Notes">
           <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="JD link, referral source, deadline, reminders…" style={{ width: '100%' }} />
         </FormRow>

@@ -76,6 +76,7 @@ function DetailPanel({ contacts }) {
               </span>
               <span style={{ fontFamily: 'var(--fm)', fontSize: 11, color: 'var(--ink3)' }}>{fmtDate(c.date)}</span>
               {c.poc && <span style={{ fontSize: 11, color: 'var(--ink2)' }}>via {c.poc}</span>}
+              {c.phone && <span style={{ fontFamily: 'var(--fm)', fontSize: 11, color: 'var(--ink2)', background: 'var(--bg4)', border: '0.5px solid var(--bdr)', padding: '1px 7px', borderRadius: 4 }}>{c.phone}</span>}
               {c.note && <span style={{ fontSize: 11, color: 'var(--ink2)', borderLeft: '1px solid var(--bdr2)', paddingLeft: 8 }}>{c.note}</span>}
             </div>
           ))}
@@ -158,6 +159,12 @@ export default function CompanyTable({ entries, loading, onEdit, onDelete }) {
                   <td style={tdStyle}>
                     <div style={{ fontWeight: 500 }}>{e.company || '—'}</div>
                     {e.role && <div style={{ fontSize: 11, color: 'var(--ink2)', marginTop: 1 }}>{e.role}</div>}
+                    {e.scheduledDate && (
+                      <div style={{ fontSize: 10, color: 'var(--amber)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <i className="ti ti-calendar-event" style={{ fontSize: 11 }} />
+                        {fmtDate(e.scheduledDate)}
+                      </div>
+                    )}
                   </td>
                   <td style={tdStyle}>{stagePill(ls) || <span style={{ color: 'var(--ink3)', fontSize: 12 }}>—</span>}</td>
                   <td style={{ ...tdStyle, fontFamily: 'var(--fm)', fontSize: 12, color: 'var(--ink2)' }}>
