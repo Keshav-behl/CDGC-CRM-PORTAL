@@ -23,11 +23,9 @@ export default function App() {
   const [filterConv, setFilterConv] = useState('')
   const [filterPerson, setFilterPerson] = useState('')
 
-  if (!user) return <Login />
-  if (user.role === 'admin') return <AdminDashboard />
-
-  // Real-time Firestore listener
+  // Real-time Firestore listener — only active for regular logged-in users
   useEffect(() => {
+    if (!user || user.role === 'admin') return
     const q = query(collection(db, 'companies'), orderBy('updatedAt', 'desc'))
     const unsub = onSnapshot(q, (snap) => {
       setEntries(snap.docs.map(d => ({ id: d.id, ...d.data() })))
@@ -37,7 +35,10 @@ export default function App() {
       setLoading(false)
     })
     return () => unsub()
-  }, [])
+  }, [user])
+
+  if (!user) return <Login />
+  if (user.role === 'admin') return <AdminDashboard />
 
   async function handleSave(data) {
     if (editEntry) {
