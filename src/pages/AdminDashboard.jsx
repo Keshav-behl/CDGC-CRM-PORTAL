@@ -5,14 +5,20 @@ import {
 } from 'firebase/firestore'
 import { useAuth } from '../context/AuthContext'
 import { hashPassword } from '../auth'
+import { addAuditLog } from '../firebase'
 import CompanyTable from '../components/CompanyTable'
 import StatsBar from '../components/StatsBar'
 import CompanyDatabase from './CompanyDatabase'
 
 const ACTION_COLORS = {
-  ADD:    { bg: 'var(--green-bg)', bdr: 'var(--green-bdr)', ink: 'var(--green)' },
-  EDIT:   { bg: 'var(--blue-bg)',  bdr: 'var(--blue-bdr)',  ink: 'var(--blue)'  },
-  DELETE: { bg: 'var(--red-bg)',   bdr: 'var(--red-bdr)',   ink: 'var(--red)'   },
+  ADD:        { bg: 'var(--green-bg)',  bdr: 'var(--green-bdr)',  ink: 'var(--green)'  },
+  EDIT:       { bg: 'var(--blue-bg)',   bdr: 'var(--blue-bdr)',   ink: 'var(--blue)'   },
+  DELETE:     { bg: 'var(--red-bg)',    bdr: 'var(--red-bdr)',    ink: 'var(--red)'    },
+  USER_ADD:   { bg: 'var(--green-bg)', bdr: 'var(--green-bdr)',  ink: 'var(--green)'  },
+  USER_DEL:   { bg: 'var(--red-bg)',   bdr: 'var(--red-bdr)',    ink: 'var(--red)'    },
+  PWD_RESET:  { bg: 'var(--amber-bg)', bdr: 'var(--amber-bdr)',  ink: 'var(--amber)'  },
+  DB_ADD:     { bg: 'var(--green-bg)', bdr: 'var(--green-bdr)',  ink: 'var(--green)'  },
+  DB_DELETE:  { bg: 'var(--red-bg)',   bdr: 'var(--red-bdr)',    ink: 'var(--red)'    },
 }
 
 function ActionBadge({ action }) {
@@ -52,6 +58,7 @@ function generatePassword(displayName) {
 }
 
 function UserManager() {
+  const { user: adminUser } = useAuth()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAdd, setShowAdd] = useState(false)
@@ -80,13 +87,11 @@ function UserManager() {
     if (!newUsername.trim() || !newPassword.trim()) return
     setSaving(true)
     try {
+      const username = newUsername.trim()
+      const displayName = newDisplayName.trim() || username
       const passwordHash = await hashPassword(newPassword.trim())
-      await setDoc(doc(db, 'users', newUsername.trim()), {
-        username: newUsername.trim(),
-        displayName: newDisplayName.trim() || newUsername.trim(),
-        passwordHash,
-        role: newRole,
-      })
+      await setDoc(doc(db, 'users', username), { username, displayName, passwordHash, role: newRole })
+      addAuditLog({ action: 'USER_ADD', user: adminUser.username, companyName: null, details: `Added user ${username} (${newRole})` })
       setShowAdd(false)
       setNewUsername('')
       setNewDisplayName('')
@@ -106,6 +111,7 @@ function UserManager() {
     try {
       const passwordHash = await hashPassword(resetPassword.trim())
       await setDoc(doc(db, 'users', resetUser.username), { ...resetUser, passwordHash }, { merge: true })
+      addAuditLog({ action: 'PWD_RESET', user: adminUser.username, companyName: null, details: `Password reset for ${resetUser.username}` })
       setResetUser(null)
       setResetPassword('')
     } catch (err) {
@@ -118,6 +124,7 @@ function UserManager() {
   async function handleDeleteUser(user) {
     if (!window.confirm(`Delete user "${user.username}"? This cannot be undone.`)) return
     await deleteDoc(doc(db, 'users', user.username))
+    addAuditLog({ action: 'USER_DEL', user: adminUser.username, companyName: null, details: `Deleted user ${user.username}` })
   }
 
   if (loading) return <div style={{ padding: 32, color: 'var(--ink3)', fontFamily: 'var(--fm)', fontSize: 12 }}>Loading users…</div>

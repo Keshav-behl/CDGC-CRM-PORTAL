@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { db } from '../firebase'
+import { db, addAuditLog } from '../firebase'
 import {
   collection, onSnapshot, query, orderBy, doc, setDoc, deleteDoc, writeBatch,
 } from 'firebase/firestore'
 import * as XLSX from 'xlsx'
+import { useAuth } from '../context/AuthContext'
 
 const thStyle = {
   fontFamily: 'var(--fm)', fontSize: 10, fontWeight: 500,
@@ -19,6 +20,7 @@ function slugify(name) {
 }
 
 export default function CompanyDatabase() {
+  const { user: adminUser } = useAuth()
   const [companies, setCompanies] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -47,13 +49,16 @@ export default function CompanyDatabase() {
     setAdding(true)
     const id = slugify(name) || Date.now().toString()
     await setDoc(doc(db, 'companyDatabase', id), { name, addedAt: new Date().toISOString() }, { merge: true })
+    addAuditLog({ action: 'DB_ADD', user: adminUser.username, companyName: name, details: 'Added to company database' })
     setNewName('')
     setAdding(false)
   }
 
   async function handleDelete(id) {
+    const target = companies.find(c => c.id === id)
     if (!window.confirm('Remove this company from the database?')) return
     await deleteDoc(doc(db, 'companyDatabase', id))
+    addAuditLog({ action: 'DB_DELETE', user: adminUser.username, companyName: target?.name || id, details: 'Removed from company database' })
   }
 
   // ── Excel / CSV import ──────────────────────────────────────────────────────
@@ -112,6 +117,7 @@ export default function CompanyDatabase() {
     setImporting(false)
     setImportPreview(null)
     setImportResult({ added, skipped, total: names.length })
+    if (added > 0) addAuditLog({ action: 'DB_ADD', user: adminUser.username, companyName: null, details: `Bulk imported ${added} companies from Excel (${skipped} skipped)` })
   }
 
   const filtered = companies.filter(c =>
