@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import CompanyAutocomplete from './CompanyAutocomplete'
 
 const STAGE_LABELS = [
   'Approach', 'First Contact', 'Second Contact', 'Third Contact',
@@ -127,7 +128,7 @@ export default function CompanyModal({ entry, currentUser, onSave, onClose }) {
             </div>
           </FormRow>
           <FormRow label="Company">
-            <input type="text" value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. Jane Street" style={{ width: '100%' }} />
+            <CompanyAutocomplete value={company} onChange={setCompany} placeholder="e.g. Jane Street" />
           </FormRow>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

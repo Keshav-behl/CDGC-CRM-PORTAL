@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { hashPassword } from '../auth'
 import CompanyTable from '../components/CompanyTable'
 import StatsBar from '../components/StatsBar'
+import CompanyDatabase from './CompanyDatabase'
 
 const ACTION_COLORS = {
   ADD:    { bg: 'var(--green-bg)', bdr: 'var(--green-bdr)', ink: 'var(--green)' },
@@ -346,12 +347,14 @@ export default function AdminDashboard() {
 
   const tabs = [
     { id: 'companies', label: 'Companies' },
+    { id: 'companydb', label: 'Company DB' },
     { id: 'audit',     label: 'Audit Log' },
     { id: 'users',     label: 'Users' },
   ]
 
   const subtitles = {
     companies: 'Live view of all CRM entries',
+    companydb: 'Company name database — used for autocomplete in the CRM',
     audit:     'All activity across the CRM',
     users:     'Manage team members',
   }
@@ -408,8 +411,9 @@ export default function AdminDashboard() {
             }}>
               {subtitles[tab]}
             </div>
-            {tab === 'audit' && <AuditLog />}
-            {tab === 'users' && <UserManager />}
+            {tab === 'companydb' && <CompanyDatabase />}
+            {tab === 'audit'     && <AuditLog />}
+            {tab === 'users'     && <UserManager />}
           </div>
         )}
       </div>
