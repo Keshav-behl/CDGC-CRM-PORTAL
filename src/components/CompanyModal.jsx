@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import CompanyAutocomplete from './CompanyAutocomplete'
 
 const STAGE_LABELS = [
-  'Approach', 'First Contact', 'Second Contact', 'Third Contact',
+  'First Contact', 'Second Contact', 'Third Contact',
   'Fourth Contact', 'Fifth Contact', 'Sixth Contact', 'Seventh Contact',
   'Eighth Contact', 'Ninth Contact', 'Tenth Contact',
 ]
@@ -49,10 +49,7 @@ function ContactRow({ contact, index, onChange, onRemove }) {
         </select>
         <input type="date" value={contact.date} onChange={e => onChange(index, 'date', e.target.value)} />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <input type="text" placeholder="POC / contact name" value={contact.poc} onChange={e => onChange(index, 'poc', e.target.value)} />
-        <input type="tel" placeholder="Phone number" value={contact.phone || ''} onChange={e => onChange(index, 'phone', e.target.value)} />
-      </div>
+      <input type="text" placeholder="Notes" value={contact.note || ''} onChange={e => onChange(index, 'note', e.target.value)} style={{ width: '100%' }} />
     </div>
   )
 }
@@ -62,6 +59,8 @@ export default function CompanyModal({ entry, currentUser, onSave, onClose }) {
   const [role, setRole] = useState('')
   const [conversion, setConversion] = useState('Not Approached')
   const [scheduledDate, setScheduledDate] = useState('')
+  const [hrName, setHrName] = useState('')
+  const [hrPhone, setHrPhone] = useState('')
   const [notes, setNotes] = useState('')
   const [contacts, setContacts] = useState([])
 
@@ -71,6 +70,8 @@ export default function CompanyModal({ entry, currentUser, onSave, onClose }) {
       setRole(entry.role || '')
       setConversion(entry.conversion || 'Not Approached')
       setScheduledDate(entry.scheduledDate || '')
+      setHrName(entry.hrName || '')
+      setHrPhone(entry.hrPhone || '')
       setNotes(entry.notes || '')
       setContacts(entry.contacts ? JSON.parse(JSON.stringify(entry.contacts)) : [])
     }
@@ -82,8 +83,7 @@ export default function CompanyModal({ entry, currentUser, onSave, onClose }) {
       stage: nextStage,
       channel: 'Email',
       date: new Date().toISOString().slice(0, 10),
-      poc: '',
-      phone: '',
+      note: '',
     }])
   }
 
@@ -101,7 +101,7 @@ export default function CompanyModal({ entry, currentUser, onSave, onClose }) {
       return
     }
     const person = currentUser?.displayName || ''
-    onSave({ person, company: company.trim(), role: role.trim(), conversion, scheduledDate, notes: notes.trim(), contacts })
+    onSave({ person, company: company.trim(), role: role.trim(), conversion, scheduledDate, hrName: hrName.trim(), hrPhone: hrPhone.trim(), notes: notes.trim(), contacts })
   }
 
   return (
@@ -147,6 +147,14 @@ export default function CompanyModal({ entry, currentUser, onSave, onClose }) {
         <FormRow label="Scheduled approach date">
           <input type="date" value={scheduledDate} onChange={e => setScheduledDate(e.target.value)} style={{ width: '100%' }} />
         </FormRow>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <FormRow label="HR name">
+            <input type="text" value={hrName} onChange={e => setHrName(e.target.value)} placeholder="e.g. Priya Sharma" style={{ width: '100%' }} />
+          </FormRow>
+          <FormRow label="HR phone">
+            <input type="tel" value={hrPhone} onChange={e => setHrPhone(e.target.value)} placeholder="e.g. +91 98765 43210" style={{ width: '100%' }} />
+          </FormRow>
+        </div>
         <FormRow label="Notes">
           <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="JD link, referral source, deadline, reminders…" style={{ width: '100%' }} />
         </FormRow>
